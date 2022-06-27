@@ -4,9 +4,7 @@ rm -rf item_db
 
 sqlite3 item_db 'CREATE TABLE item(id INTEGER PRIMARY KEY ASC, name TEXT, price INTEGER);'
 
-rm -rf score_db
-
-sqlite3 score_db 'CREATE TABLE score(id INTEGER PRIMARY KEY ASC, name TEXT, score INTEGER);'
+sqlite3 item_db 'CREATE TABLE score(id INTEGER PRIMARY KEY ASC, name TEXT, score INTEGER);'
 
 
 # sqlite3 item_db 'INSERT INTO item(name, price) VALUES("SmartPhone", 32);'
@@ -59,7 +57,7 @@ insertItemFn () {
 }
 
 insertScoreFn () {
-  insertData=""
+  insertScoreData=""
 
   for i in $(seq $1 $2)
   do
@@ -68,14 +66,14 @@ insertScoreFn () {
 
     if [ $i -eq $2 ]
     then
-      insertData=${insertData}"(\"$name\", $score);"
+      insertScoreData=${insertScoreData}"(\"$name\", $score);"
       break
     fi
 
-    insertData=${insertData}"(\"$name\", $score),"
+    insertScoreData=${insertScoreData}"(\"$name\", $score),"
   done
 
-  sqlite3 score_db "INSERT INTO score(name, score) VALUES $insertData"
+  sqlite3 item_db "INSERT INTO score(name, score) VALUES $insertScoreData"
 }
 
 
@@ -84,12 +82,13 @@ do
   start=$(($(($i*1000))+1))
   end=$(($(($i+1))*1000))
 
-  mod=$((end%10000))
-  if [ $mod -eq 0 ]
-  then
+  # mod=$((end%10000))
+  # if [ $mod -eq 0 ]
+  # then
     echo $start $end
-  fi
+  # fi
 
+  insertItemFn $start $end
   insertScoreFn $start $end
 done
 # => これで10000件のItemとScoreができる DBのサイズは200kずつ

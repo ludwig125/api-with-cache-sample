@@ -51,7 +51,7 @@ func connSQLite(dbName string) (*sql.DB, error) {
 	return sql.Open("sqlite3", dbName)
 }
 
-func (r *sqliteRepository) GetAll() ([]Item, error) {
+func (r *sqliteRepository) GetAll() (Items, error) {
 	rows, err := r.db.Query("SELECT * FROM item")
 	if err != nil {
 		return nil, fmt.Errorf("failed to select all items, err: %v", err)
@@ -59,7 +59,49 @@ func (r *sqliteRepository) GetAll() ([]Item, error) {
 	return scanItems(rows)
 }
 
-func (r *sqliteRepository) GetItems(ids []ID) ([]Item, error) {
+func (r *sqliteRepository) SearchByPriceEqualTo(price Price) (Items, error) {
+	rows, err := r.db.Query("SELECT * FROM item WHERE price = ?", price)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query: %v", err)
+	}
+	return scanItems(rows)
+}
+
+func (r *sqliteRepository) SearchByPriceLessThanAndEqualTo(price Price) (Items, error) {
+	rows, err := r.db.Query("SELECT * FROM item WHERE price <= ?", price)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query: %v", err)
+	}
+	return scanItems(rows)
+}
+
+func (r *sqliteRepository) SearchByPriceGreaterThanAndEqualTo(price Price) (Items, error) {
+	rows, err := r.db.Query("SELECT * FROM item WHERE price >= ?", price)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query: %v", err)
+	}
+	return scanItems(rows)
+}
+
+func scanItems(rows *sql.Rows) (Items, error) {
+	var is Items
+	defer rows.Close()
+	for rows.Next() {
+		var i Item
+		err := rows.Scan(&i.ID, &i.Name, &i.Price)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan: %v", err)
+		}
+		is = append(is, i)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("row error: %v", err)
+	}
+	return is, nil
+}
+
+func (r *sqliteRepository) GetScores(ids []ID) (Scores, error) {
 	// PrepareのIN句の中のplaceholder"?"をidsの数だけカンマでつなぐ
 	inStmt := ""
 	for i := 1; i <= len(ids); i++ {
@@ -70,7 +112,7 @@ func (r *sqliteRepository) GetItems(ids []ID) ([]Item, error) {
 		inStmt += "?,"
 	}
 
-	stmt, err := r.db.Prepare(fmt.Sprintf("SELECT * FROM item WHERE id IN(%s)", inStmt))
+	stmt, err := r.db.Prepare(fmt.Sprintf("SELECT * FROM score WHERE id IN(%s)", inStmt))
 	if err != nil {
 		return nil, fmt.Errorf("failed to Prepare: %v", err)
 	}
@@ -82,7 +124,7 @@ func (r *sqliteRepository) GetItems(ids []ID) ([]Item, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to Query: %v", err)
 	}
-	return scanItems(rows)
+	return scanScores(rows)
 }
 
 func idsToArgs(ids []ID) []interface{} {
@@ -93,20 +135,20 @@ func idsToArgs(ids []ID) []interface{} {
 	return args
 }
 
-func scanItems(rows *sql.Rows) ([]Item, error) {
-	var Items []Item
+func scanScores(rows *sql.Rows) (Scores, error) {
+	var ss Scores
 	defer rows.Close()
 	for rows.Next() {
-		var a Item
-		err := rows.Scan(&a.ID, &a.Name, &a.Price)
+		var s Score
+		err := rows.Scan(&s.ID, &s.Name, &s.Score)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan: %v", err)
 		}
-		Items = append(Items, a)
+		ss = append(ss, s)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("row error: %v", err)
 	}
-	return Items, nil
+	return ss, nil
 }

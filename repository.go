@@ -1,6 +1,9 @@
 package main
 
 type ItemRepository interface {
-	GetAll() ([]Item, error)
-	GetItems(ids []ID) ([]Item, error)
+	GetAll() (Items, error)
+	SearchByPriceEqualTo(price Price) (Items, error)
+	SearchByPriceLessThanAndEqualTo(price Price) (Items, error)
+	SearchByPriceGreaterThanAndEqualTo(price Price) (Items, error)
+	GetScores(ids []ID) (Scores, error)
 }
