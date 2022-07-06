@@ -34,7 +34,9 @@ func runItemAPI() error {
 		return fmt.Errorf("invalid dbType: %s", dbType)
 	}
 
-	usecase := NewItemUsecase(repository)
+	cache := NewCache(10000000)
+
+	usecase := NewItemUsecase(repository, cache)
 
 	config := ServerConfig{Port: useEnvOrDefault("SERVER_PORT", "8080")}
 	server := NewServer(config, usecase)

@@ -56,7 +56,7 @@ func (s *Server) GetAllHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, e, http.StatusInternalServerError)
 		return
 	}
-	responseItemByJSON(is, w)
+	responseByJSON(is, w)
 }
 
 func (s *Server) SearchHandler(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +79,7 @@ func (s *Server) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, e, http.StatusInternalServerError)
 		return
 	}
-	responseItemByJSON(is, w)
+	responseByJSON(is, w)
 }
 
 // // 取得方法
@@ -129,11 +129,11 @@ func (s *Server) SearchHandler(w http.ResponseWriter, r *http.Request) {
 // 		http.Error(w, e, http.StatusInternalServerError)
 // 		return
 // 	}
-// 	responseItemByJSON(items, w)
+// 	responseByJSON(items, w)
 // }
 
-func responseItemByJSON(is []Item, w http.ResponseWriter) {
-	jsonData, err := json.Marshal(is)
+func responseByJSON(resp interface{}, w http.ResponseWriter) {
+	jsonData, err := json.Marshal(resp)
 	if err != nil {
 		log.Println("failed to marshal", err)
 		w.WriteHeader(http.StatusInternalServerError)

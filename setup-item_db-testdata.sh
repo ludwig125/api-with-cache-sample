@@ -1,5 +1,10 @@
 #!/bin/bash -eu
 
+######################
+# integration_testに機能を引き継ぐ
+######################
+
+
 rm -rf item_db
 
 sqlite3 item_db 'CREATE TABLE item(id INTEGER PRIMARY KEY ASC, name TEXT, price INTEGER);'

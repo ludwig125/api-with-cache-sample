@@ -13,6 +13,7 @@ type ItemUsecase interface {
 type itemUsecase struct {
 	// config       Config
 	repository ItemRepository
+	cache      *TTLMap
 	// exRepository ExcludeRepository
 }
 
@@ -20,8 +21,8 @@ type itemUsecase struct {
 // See: http://golang.org/doc/faq#guarantee_satisfies_interface
 var _ ItemUsecase = (*itemUsecase)(nil)
 
-func NewItemUsecase(repository ItemRepository) ItemUsecase {
-	return &itemUsecase{repository: repository}
+func NewItemUsecase(repository ItemRepository, cache *TTLMap) ItemUsecase {
+	return &itemUsecase{repository: repository, cache: cache}
 }
 
 func (s *itemUsecase) GetAll() (Items, error) {
@@ -41,13 +42,37 @@ func (s *itemUsecase) Search(c SearchCondition) (Items, error) {
 
 	is.Sort()
 
-	// ここでlimit処理入れる
+	var cachedItemIDs []ID
+	for _, i := range is {
+		if ok := s.cache.Get(fmt.Sprintf("%d", i.ID)); ok {
+			cachedItemIDs = append(cachedItemIDs, ID(i.ID))
+		}
+	}
+	if len(cachedItemIDs) != 0 {
+		is = is.RemoveItems(cachedItemIDs)
+	}
+
+	limit := 10
+	is = is.Limit(limit)
 
 	ss, err := s.getScores(extractIDsFromItems(is))
 	if err != nil {
 		return nil, fmt.Errorf("failed to getScores: %v", err)
 	}
+
+	// 事前にScoreを大きい順にsort
+	ss.Sort()
 	fmt.Println("ss", ss)
+
+	is = is.SortByScore(ss)
+	fmt.Println("is", is)
+
+	for _, i := range ss {
+		if i.Score == 0 {
+			fmt.Println("put Item", i)
+			s.cache.Put(fmt.Sprintf("%d", i.ID), true)
+		}
+	}
 
 	return is, err
 }
