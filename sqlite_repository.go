@@ -18,6 +18,14 @@ type sqliteRepository struct {
 var _ ItemRepository = (*sqliteRepository)(nil)
 
 func NewSQLiteItemRepository(dbName string) (ItemRepository, error) {
+	return NewSQLiteRepository(dbName)
+}
+
+func NewSQLiteScoreRepository(dbName string) (ScoreRepository, error) {
+	return NewSQLiteRepository(dbName) // 上と同じ
+}
+
+func NewSQLiteRepository(dbName string) (*sqliteRepository, error) {
 	// 対象のDBがなくても新規に作ってしまうようなので、DBファイルの存在確認する
 	if !exists(dbName) {
 		return nil, fmt.Errorf("no such db file: %s", dbName)

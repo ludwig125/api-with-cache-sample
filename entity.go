@@ -8,12 +8,16 @@ import (
 
 // Item is item struct with json.
 type Item struct {
-	ID    int    `json:"id"`
+	ID    ID     `json:"id"`
 	Name  string `json:"name"`
 	Price int    `json:"price"`
 }
 
 type ID int
+
+func (id ID) String() string {
+	return fmt.Sprintf("%d", id)
+}
 
 // type RequestIDs struct {
 // 	IDs []ID `json:"ids"`
@@ -77,7 +81,7 @@ type Price int
 
 // Score is item  score struct with json.
 type Score struct {
-	ID    int    `json:"id"`
+	ID    ID     `json:"id"`
 	Name  string `json:"name"`
 	Score int    `json:"score"`
 }

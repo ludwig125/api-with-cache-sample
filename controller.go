@@ -9,14 +9,14 @@ import (
 
 type Server struct {
 	Port    string
-	Usecase ItemUsecase
+	Usecase SearchUsecase
 }
 
 type ServerConfig struct {
 	Port string
 }
 
-func NewServer(config ServerConfig, usecase ItemUsecase) *Server {
+func NewServer(config ServerConfig, usecase SearchUsecase) *Server {
 	return &Server{
 		Port:    config.Port,
 		Usecase: usecase,
